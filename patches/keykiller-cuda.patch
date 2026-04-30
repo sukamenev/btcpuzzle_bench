@@ -1,0 +1,96 @@
+diff --git a/Makefile b/Makefile
+index db395a6..7a28d97 100755
+--- a/Makefile
++++ b/Makefile
+@@ -22,7 +22,7 @@ OBJET = $(addprefix $(OBJDIR)/, \
+ # 2. 編譯器與工具路徑 (Compilers and Tools)
+ #---------------------------------------------------------------------
+ CXX        = g++
+-CUDA       = /usr/local/cuda
++CUDA      ?= /opt/cuda
+ CXXCUDA    = /usr/bin/g++
+ NVCC       = $(CUDA)/bin/nvcc
+ 
+@@ -67,10 +67,6 @@ NVCC_FLAGS_RELEASE = \
+ 	-m64 \
+ 	-I$(CUDA)/include \
+ 	$(CUDA_ARCH)
+-	# --- 可選的激進優化 (可能影響精度，請自行測試後啟用) ---
+-	--ftz=true
+-	--prec-div=false
+-	--prec-sqrt=false
+ 
+ # --- 連結旗標 ---
+ LFLAGS     = -lpthread -L$(CUDA)/lib64 -lcudart
+diff --git a/Timer.h b/Timer.h
+index 3a2bc1b..5617844 100755
+--- a/Timer.h
++++ b/Timer.h
+@@ -20,6 +20,7 @@
+ #define TIMERH
+ 
+ #include <time.h>
++#include <cstdint>
+ #include <string>
+ 
+ #ifdef WIN64
+diff --git a/Vanity.cpp b/Vanity.cpp
+index 80e5375..3fc3175 100755
+--- a/Vanity.cpp
++++ b/Vanity.cpp
+@@ -954,7 +954,9 @@ void VanitySearch::FindKeyGPU(TH_PARAM* ph) {
+         }
+ 
+         double setup_t0 = Timer::get_tick();
+-        
++        // Счётчик t0 перед getGPUStartingKeys — для честного замера скорости (включая CPU-генерацию ключей)
++        t0 = Timer::get_tick();
++
+         getGPUStartingKeys(batch_start_key, STEP_SIZE, g.GetGroupSize(), numThreadsGPU, publicKeys, 0);
+         
+         ok = g.SetKeys(publicKeys);
+@@ -968,7 +970,7 @@ void VanitySearch::FindKeyGPU(TH_PARAM* ph) {
+         }
+ 
+         Paused = false;
+-        t0 = Timer::get_tick();
++        // t0 = Timer::get_tick();  // старая позиция: замер только GPU, без CPU getGPUStartingKeys
+ 
+         if (ok && !endOfSearch && !Pause) {
+             ok = g.Launch(found, true);
+diff --git a/hash/sha256.h b/hash/sha256.h
+index 6fe115f..ea8c2a9 100755
+--- a/hash/sha256.h
++++ b/hash/sha256.h
+@@ -17,6 +17,7 @@
+ 
+ #ifndef SHA256_H
+ #define SHA256_H
++#include <cstdint>
+ #include <string>
+  
+ void sha256(uint8_t *input,int length, uint8_t *digest);
+diff --git a/hash/sha512.cpp b/hash/sha512.cpp
+index f764264..c8a7470 100755
+--- a/hash/sha512.cpp
++++ b/hash/sha512.cpp
+@@ -15,6 +15,7 @@
+  * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+ 
++#include <cstdint>
+ #include <string.h>
+ #include "sha512.h"
+ 
+diff --git a/hash/sha512.h b/hash/sha512.h
+index 32dc179..9a98160 100755
+--- a/hash/sha512.h
++++ b/hash/sha512.h
+@@ -17,6 +17,7 @@
+ 
+ #ifndef SHA512_H
+ #define SHA512_H
++#include <cstdint>
+ #include <string>
+ 
+ void sha512(unsigned char *input, int length, unsigned char *digest);

@@ -1,0 +1,52 @@
+# KeyScanner Makefile for Linux
+
+SRCDIR = src
+OBJDIR = obj
+
+CPPSRC = $(SRCDIR)/curve/Point.cpp $(SRCDIR)/curve/SECP256K1.cpp \
+         $(SRCDIR)/GPU/GPUGenerate.cpp $(SRCDIR)/hash/Base58.cpp \
+         $(SRCDIR)/hash/keccak160.cpp $(SRCDIR)/hash/ripemd160.cpp \
+         $(SRCDIR)/hash/ripemd160_sse.cpp $(SRCDIR)/hash/sha256.cpp \
+         $(SRCDIR)/hash/sha256_sse.cpp $(SRCDIR)/hash/sha512.cpp \
+         $(SRCDIR)/KeyFinder.cpp $(SRCDIR)/Main.cpp \
+         $(SRCDIR)/math/GmpUtil.cpp $(SRCDIR)/math/Int.cpp \
+         $(SRCDIR)/math/IntGroup.cpp $(SRCDIR)/math/IntMod.cpp \
+         $(SRCDIR)/parse/CmdParse.cpp \
+         $(SRCDIR)/rng/Random.cpp $(SRCDIR)/rng/Timer.cpp \
+         $(SRCDIR)/search/Bloom.cpp
+
+CUSRC = $(SRCDIR)/GPU/GPUEngine.cu $(SRCDIR)/rng/GPURand.cu
+
+OBJS = $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(CPPSRC)) \
+       $(patsubst $(SRCDIR)/%.cu,$(OBJDIR)/%.o,$(CUSRC))
+
+CXX = g++
+CUDA ?= /opt/cuda
+NVCC = $(CUDA)/bin/nvcc
+ccap = $(shell echo $(CCAP) | tr -d '.')
+
+INCLUDES = -I$(SRCDIR) -I$(SRCDIR)/.. -Idepends/gmp/include -I$(CUDA)/include
+CXXFLAGS = -DWITHGPU -m64 -mssse3 -Wno-write-strings -fpermissive -O2 $(INCLUDES)
+LFLAGS = -lgmp -lpthread -L$(CUDA)/lib64 -lcudart
+
+NVCCFLAGS = -std=c++17 --allow-unsupported-compiler -Xcompiler -fpermissive -O2 -m64 \
+            -gencode=arch=compute_$(ccap),code=sm_$(ccap) \
+            -I$(SRCDIR) -I$(SRCDIR)/.. -Idepends/gmp/include -I$(CUDA)/include
+
+all: keyscanner
+
+keyscanner: $(OBJS)
+	$(CXX) $(OBJS) $(LFLAGS) -o keyscanner
+
+$(OBJDIR)/%.o: $(SRCDIR)/%.cpp
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+$(OBJDIR)/%.o: $(SRCDIR)/%.cu
+	@mkdir -p $(dir $@)
+	$(NVCC) $(NVCCFLAGS) -c $< -o $@
+
+clean:
+	rm -rf $(OBJDIR) keyscanner
+
+.PHONY: all clean

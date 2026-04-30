@@ -1,0 +1,70 @@
+diff --git a/KeyHunt-Cuda/Makefile b/KeyHunt-Cuda/Makefile
+index 0ecd2ea..c722254 100644
+--- a/KeyHunt-Cuda/Makefile
++++ b/KeyHunt-Cuda/Makefile
+@@ -32,7 +32,7 @@ OBJET = $(addprefix $(OBJDIR)/, \
+ endif
+ 
+ CXX        = g++
+-CUDA       = /usr/local/cuda
++CUDA      ?= /opt/cuda
+ CXXCUDA    = /usr/bin/g++
+ NVCC       = $(CUDA)/bin/nvcc
+ # nvcc requires joint notation w/o dot, i.e. "5.2" -> "52"
+@@ -63,7 +63,7 @@ $(OBJDIR)/GPU/GPUEngine.o: GPU/GPUEngine.cu
+ 	$(NVCC) -G -maxrregcount=0 --ptxas-options=-v --compile --compiler-options -fPIC -ccbin $(CXXCUDA) -m64 -g -I$(CUDA)/include -gencode=arch=compute_$(ccap),code=sm_$(ccap) -o $(OBJDIR)/GPU/GPUEngine.o -c GPU/GPUEngine.cu
+ else
+ $(OBJDIR)/GPU/GPUEngine.o: GPU/GPUEngine.cu
+-	$(NVCC) -maxrregcount=0 --ptxas-options=-v --compile --compiler-options -fPIC -ccbin $(CXXCUDA) -m64 -O2 -I$(CUDA)/include -gencode=arch=compute_$(ccap),code=sm_$(ccap) -o $(OBJDIR)/GPU/GPUEngine.o -c GPU/GPUEngine.cu
++	$(NVCC) -std=c++17 --allow-unsupported-compiler -maxrregcount=0 --ptxas-options=-v --compile --compiler-options -fPIC -ccbin $(CXXCUDA) -m64 -O2 -I$(CUDA)/include -gencode=arch=compute_$(ccap),code=sm_$(ccap) -o $(OBJDIR)/GPU/GPUEngine.o -c GPU/GPUEngine.cu
+ endif
+ endif
+ 
+diff --git a/KeyHunt-Cuda/Timer.h b/KeyHunt-Cuda/Timer.h
+index 21b8858..9eba52b 100644
+--- a/KeyHunt-Cuda/Timer.h
++++ b/KeyHunt-Cuda/Timer.h
+@@ -19,6 +19,7 @@
+ #define TIMERH
+ 
+ #include <time.h>
++#include <cstdint>
+ #include <string>
+ #ifdef WIN64
+ #include <windows.h>
+diff --git a/KeyHunt-Cuda/hash/sha256.h b/KeyHunt-Cuda/hash/sha256.h
+index ab3955d..36ce00a 100644
+--- a/KeyHunt-Cuda/hash/sha256.h
++++ b/KeyHunt-Cuda/hash/sha256.h
+@@ -17,6 +17,7 @@
+ 
+ #ifndef SHA256_H
+ #define SHA256_H
++#include <cstdint>
+ #include <string>
+ 
+ void sha256(uint8_t *input, int length, uint8_t *digest);
+diff --git a/KeyHunt-Cuda/hash/sha512.cpp b/KeyHunt-Cuda/hash/sha512.cpp
+index 8babc54..29f235b 100644
+--- a/KeyHunt-Cuda/hash/sha512.cpp
++++ b/KeyHunt-Cuda/hash/sha512.cpp
+@@ -15,6 +15,7 @@
+  * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+ 
++#include <cstdint>
+ #include <string.h>
+ #include "sha512.h"
+ 
+diff --git a/KeyHunt-Cuda/hash/sha512.h b/KeyHunt-Cuda/hash/sha512.h
+index ead22d9..a1bf473 100644
+--- a/KeyHunt-Cuda/hash/sha512.h
++++ b/KeyHunt-Cuda/hash/sha512.h
+@@ -17,6 +17,7 @@
+ 
+ #ifndef SHA512_H
+ #define SHA512_H
++#include <cstdint>
+ #include <string>
+ 
+ void sha512(unsigned char *input, int length, unsigned char *digest);
