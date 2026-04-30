@@ -1,0 +1,43 @@
+# Создаётся скриптом во время прогона
+work/
+logs/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Виртуальные окружения
+.venv/
+venv/
+env/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Временные файлы скрипта
+*.tmp
+*.log
+
+# Найденные ключи (на всякий случай — чтобы не утекли при случайном add)
+FOUND_*.txt
+found.txt
+found_keys.txt
+KEYFOUNDKEYFOUND.txt
+
+# State-файлы btcmole
+bf_*.map
+bf_*.state
